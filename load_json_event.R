@@ -1,4 +1,3 @@
-setwd("C:/Users/quicl/Desktop/sales_analytics/Projects/medical")
 # Load libraries
 options(warn=-1) 
 
@@ -233,8 +232,6 @@ load_json_event <- function(df = "berlin_ards.json", window = 15, back = 0, use_
   a$class_RespRate [na_RespRate] <- -99
   a$class_Temp [na_Temp] <- -99
 
- 
-  
   
   ##########################  ###########################  ###########################
   # Apply carry-forward imputation
