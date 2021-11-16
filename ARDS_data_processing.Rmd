@@ -1,5 +1,5 @@
 ---
-title: "hospital"
+title: "ARDS Data Processing"
 author: "CF Lee"
 date: "6/14/2021"
 output: html_document
@@ -8,7 +8,6 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 rm(list=ls()) 
-setwd("C:/Users/quicl/Desktop/sales_analytics/Projects/medical")
 
 library(data.table)
 library(tidyverse)
@@ -50,8 +49,8 @@ info_timex %>%
        caption="Produced by CF Lee")
 
 ```
-Quality check of the recorded time
-```{r hourx}
+
+```{r hour_age}
 # check distribution of the recorded hours in each age group
 
 info_timex %>% 
@@ -117,5 +116,4 @@ raw <- xxx %>%
 all.equal(raw$idx,xxx$row_idx)
 
 write.csv(raw, 'raw.csv')
-
 ```
