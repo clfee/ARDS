@@ -1,4 +1,3 @@
-setwd("C:/Users/quicl/Desktop/sales_analytics/Projects/medical")
 # Load libraries
 
 library(data.table)
