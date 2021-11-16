@@ -1,0 +1,121 @@
+---
+title: "hospital"
+author: "CF Lee"
+date: "6/14/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+rm(list=ls()) 
+setwd("C:/Users/quicl/Desktop/sales_analytics/Projects/medical")
+
+library(data.table)
+library(tidyverse)
+library(lubridate)
+library(plotly)
+library(reticulate)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(reshape2)
+```
+
+Load data 
+```{r load_source}
+
+source('load_json_data.R')
+info_timex <- load_json_data()
+```
+
+Extract and organize feature matrix data 
+
+```{r load_events}
+
+source('load_json_event.R')
+df <- load_json_event()
+
+```
+
+Number of Hours from beginning to the checkpoint 
+
+```{r hour}
+
+info_timex %>% 
+  ggplot(aes(prior_to_event*0.5)) +
+  geom_bar()+
+  theme(axis.text.x = element_text(face="bold", color="#0070BA"))+
+  labs(y="Encounters", x="Hours to the checkpint", 
+       title="",
+       caption="Produced by CF Lee")
+
+```
+Quality check of the recorded time
+```{r hourx}
+# check distribution of the recorded hours in each age group
+
+info_timex %>% 
+  ggplot(aes( x = is_Berlin_ARDS, fill = is_Berlin_ARDS )) +
+  geom_bar()+
+  facet_wrap(~age_group, scales = "free_y")+
+  theme(axis.text.x = element_text(face="bold", color="#0070BA"))+
+  labs(y="Hours", x="ARDS Events", 
+       title="",
+       caption="ARDS Events in Age Groups; Produced by CF Lee")
+
+
+```
+
+```{r age_events}
+# Calculate the percentage of the event happened in each age group
+
+data <- info_timex %>%
+        select(is_Berlin_ARDS, age_group)%>%
+        group_by(age_group)%>%
+        count(is_Berlin_ARDS)
+
+data_summary <- data %>%
+                group_by(age_group)%>%
+                mutate(pct = round(n[is_Berlin_ARDS == TRUE]/sum(n),3))%>%
+                distinct(age_group , .keep_all = TRUE)%>%
+                select(-c(is_Berlin_ARDS))
+data_summary
+```
+
+
+
+```{r event_feature}
+
+# Check the distribution of individual feature
+no_event <- info_timex$idx[info_timex$is_Berlin_ARDS == FALSE]
+
+features <- setdiff(unique(df$variable) ,c(grep("d",unique(df$variable)  ,value = TRUE))) 
+
+na.omit(df) %>%
+  dplyr::filter(variable %in% features)%>% 
+  mutate(code = ifelse(row_idx %in% no_event == TRUE, 'NO_EVENT', 'EVENT'))%>% 
+  ggplot(aes(value, color = code)) +
+  geom_histogram(fill="white", alpha=0.5)+
+  facet_wrap(~variable, scales = "free")+
+  labs(y="Frequency", x="Reads", 
+       title="",
+       caption="Produced by CF Lee")
+```
+
+
+```{r merge _ori}
+
+df %>%
+      unite(feature_x,variable, number, sep = "_")%>%
+      spread(feature_x, value) -> xxx 
+
+raw <- xxx %>%
+          mutate(idx = row_idx) %>%
+          left_join(info_timex[,c('idx', 'age','gender','weight' ,'is_Berlin_ARDS')])%>%
+          select(-c(row_idx))
+
+all.equal(raw$idx,xxx$row_idx)
+
+write.csv(raw, 'raw.csv')
+
+```
